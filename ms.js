@@ -1,4 +1,5 @@
 
+(function (g) {
 /**
  * Helpers.
  */
@@ -16,7 +17,7 @@ var d = h * 24;
  * @api public
  */
 
-module.exports = function(val){
+var ms = function(val){
   if ('string' == typeof val) return parse(val);
   return format(val);
 }
@@ -79,3 +80,6 @@ function format(ms) {
   if (ms > s) return (ms / s) + ' seconds';
   return ms + ' ms';
 }
+
+  g.top ? g.ms = ms : module.exports = ms;
+})(this);
