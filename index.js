@@ -1,3 +1,5 @@
+(function(g) {
+
 /**
  * Helpers.
  */
@@ -21,12 +23,11 @@ var y = d * 365.25;
  * @api public
  */
 
-module.exports = function(val, options){
+var ms = function(val, options) {
   options = options || {};
-  if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
+  if(options.long) return long(val);
+  if(options.short) return short(val);
+  return parse(val);
 };
 
 /**
@@ -109,3 +110,6 @@ function plural(ms, n, name) {
   if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
+
+g.top ? g.ms = ms : module.exports = ms;
+})(this);
