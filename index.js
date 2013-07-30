@@ -1,4 +1,5 @@
 (function(g) {
+"use strict";
 
 /**
  * Helpers.
@@ -25,8 +26,8 @@ var y = d * 365.25;
 
 var ms = function(val, options) {
   options = options || {};
-  if(options.long) return long(val);
-  if(options.short) return short(val);
+  if(options['long']) { return longval(val); }
+  if(options['short']) { return shortval(val); }
   return parse(val);
 };
 
@@ -40,7 +41,7 @@ var ms = function(val, options) {
 
 function parse(str) {
   var match = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|years?|y)?$/i.exec(str);
-  if (!match) return;
+  if (!match) { return; }
   var n = parseFloat(match[1]);
   var type = (match[2] || 'ms').toLowerCase();
   switch (type) {
@@ -77,11 +78,11 @@ function parse(str) {
  * @api private
  */
 
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
+function shortval(ms) {
+  if (ms >= d) { return Math.round(ms / d) + 'd'; }
+  if (ms >= h) { return Math.round(ms / h) + 'h'; }
+  if (ms >= m) { return Math.round(ms / m) + 'm'; }
+  if (ms >= s) { return Math.round(ms / s) + 's'; }
   return ms + 'ms';
 }
 
@@ -93,23 +94,23 @@ function short(ms) {
  * @api private
  */
 
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
+function longval(ms) {
+  return pluralval(ms, d, 'day') || pluralval(ms, h, 'hour') || pluralval(ms, m, 'minute') || pluralval(ms, s, 'second') || ms + ' ms';
 }
 
 /**
  * Pluralization helper.
  */
 
-function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+function pluralval(ms, n, name) {
+  if (ms < n) { return; }
+  if (ms < n * 1.5) { return Math.floor(ms / n) + ' ' + name; }
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-g.top ? g.ms = ms : module.exports = ms;
+if (g.top) {
+   g.ms = ms;
+} else {
+  module.exports = ms;
+}
 })(this);
