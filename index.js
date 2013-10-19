@@ -9,7 +9,13 @@ var s = 1000;
 var m = s * 60;
 var h = m * 60;
 var d = h * 24;
+var w = d * 7;
+var mo = w * 4;
 var y = d * 365.25;
+
+function round(num, dec) {
+  return dec ? Math.round(num*Math.pow(10,dec))/Math.pow(10,dec) : Math.round(num);
+}
 
 /**
  * Parse or format the given `val`.
@@ -40,7 +46,7 @@ var ms = function(val, options) {
  */
 
 function parse(str) {
-  var match = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|years?|y)?$/i.exec(str);
+  var match = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|weeks?|w|months?|mos?|years?|y)?$/i.exec(str);
   if (!match) { return; }
   var n = parseFloat(match[1]);
   var type = (match[2] || 'ms').toLowerCase();
@@ -49,6 +55,15 @@ function parse(str) {
     case 'year':
     case 'y':
       return n * y;
+    case 'months':
+    case 'month':
+    case 'mos':
+    case 'mo':
+      return n * mo;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
     case 'days':
     case 'day':
     case 'd':
@@ -79,10 +94,13 @@ function parse(str) {
  */
 
 function shortval(ms) {
-  if (ms >= d) { return Math.round(ms / d) + 'd'; }
-  if (ms >= h) { return Math.round(ms / h) + 'h'; }
-  if (ms >= m) { return Math.round(ms / m) + 'm'; }
-  if (ms >= s) { return Math.round(ms / s) + 's'; }
+  if (ms >= y) { return round(ms / y, 4) + 'y'; }
+  if (ms >= mo) { return round(ms / mo, 4) + 'm'; }
+  if (ms >= w) { return round(ms / w, 4) + 'w'; }
+  if (ms >= d) { return round(ms / d, 4) + 'd'; }
+  if (ms >= h) { return round(ms / h, 4) + 'h'; }
+  if (ms >= m) { return round(ms / m, 4) + 'm'; }
+  if (ms >= s) { return round(ms / s, 4) + 's'; }
   return ms + 'ms';
 }
 
@@ -95,7 +113,7 @@ function shortval(ms) {
  */
 
 function longval(ms) {
-  return pluralval(ms, d, 'day') || pluralval(ms, h, 'hour') || pluralval(ms, m, 'minute') || pluralval(ms, s, 'second') || ms + ' ms';
+  return pluralval(ms, y, 'year') || pluralval(ms, mo, 'month') || pluralval(ms, w, 'week') || pluralval(ms, d, 'day') || pluralval(ms, h, 'hour') || pluralval(ms, m, 'minute') || pluralval(ms, s, 'second') || ms + ' ms';
 }
 
 /**
@@ -104,8 +122,8 @@ function longval(ms) {
 
 function pluralval(ms, n, name) {
   if (ms < n) { return; }
-  if (ms < n * 1.5) { return Math.floor(ms / n) + ' ' + name; }
-  return Math.ceil(ms / n) + ' ' + name + 's';
+  if (ms < n * 1.01) { return round(ms / n, 4) + ' ' + name; }
+  return round(ms / n, 4) + ' ' + name + 's';
 }
 
 if (g.top) {
