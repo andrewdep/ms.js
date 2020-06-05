@@ -1,6 +1,3 @@
-(function(g) {
-"use strict";
-
 /**
  * Helpers.
  */
@@ -25,16 +22,29 @@ function round(num, dec) {
  *  - `long` verbose formatting [false]
  *
  * @param {String|Number} val
- * @param {Object} options
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
  * @return {String|Number}
  * @api public
  */
 
-var ms = function(val, options) {
-  options = options || {};
-  if(options['long']) { return longval(val); }
-  if(options['short']) { return shortval(val); }
-  return parse(val);
+module.exports = function(val, options) {
+  if (options && options.long) {
+    return fmtLong(val);
+  } else if (options && options.short) {
+    return fmtShort(val);
+  } else {
+    var type = typeof val;
+    if (type === 'string' && val.length > 0) {
+      return parse(val);
+    } else if (type === 'number' && isFinite(val)) {
+      return val;
+    }
+  }
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
 };
 
 /**
@@ -46,13 +56,23 @@ var ms = function(val, options) {
  */
 
 function parse(str) {
-  var match = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|weeks?|w|months?|mos?|years?|y)?$/i.exec(str);
-  if (!match) { return; }
+  str = String(str);
+  if (str.length > 100) {
+    return;
+  }
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|months?/mos?/years?|yrs?|y)?$/i.exec(
+    str
+  );
+  if (!match) {
+    return;
+  }
   var n = parseFloat(match[1]);
   var type = (match[2] || 'ms').toLowerCase();
   switch (type) {
     case 'years':
     case 'year':
+    case 'yrs':
+    case 'yr':
     case 'y':
       return n * y;
     case 'months':
@@ -64,24 +84,40 @@ function parse(str) {
     case 'week':
     case 'w':
       return n * w;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
     case 'days':
     case 'day':
     case 'd':
       return n * d;
     case 'hours':
     case 'hour':
+    case 'hrs':
+    case 'hr':
     case 'h':
       return n * h;
     case 'minutes':
     case 'minute':
+    case 'mins':
+    case 'min':
     case 'm':
       return n * m;
     case 'seconds':
     case 'second':
+    case 'secs':
+    case 'sec':
     case 's':
       return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
     case 'ms':
       return n;
+    default:
+      return undefined;
   }
 }
 
@@ -95,7 +131,7 @@ function parse(str) {
 
 function shortval(ms) {
   if (ms >= y) { return round(ms / y, 4) + 'y'; }
-  if (ms >= mo) { return round(ms / mo, 4) + 'm'; }
+  if (ms >= mo) { return round(ms / mo, 4) + 'mo'; }
   if (ms >= w) { return round(ms / w, 4) + 'w'; }
   if (ms >= d) { return round(ms / d, 4) + 'd'; }
   if (ms >= h) { return round(ms / h, 4) + 'h'; }
@@ -112,23 +148,28 @@ function shortval(ms) {
  * @api private
  */
 
-function longval(ms) {
-  return pluralval(ms, y, 'year') || pluralval(ms, mo, 'month') || pluralval(ms, w, 'week') || pluralval(ms, d, 'day') || pluralval(ms, h, 'hour') || pluralval(ms, m, 'minute') || pluralval(ms, s, 'second') || ms + ' ms';
+function fmtLong(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
 }
 
 /**
  * Pluralization helper.
  */
 
-function pluralval(ms, n, name) {
-  if (ms < n) { return; }
-  if (ms < n * 1.01) { return round(ms / n, 4) + ' ' + name; }
-  return round(ms / n, 4) + ' ' + name + 's';
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
-
-if (g.top) {
-   g.ms = ms;
-} else {
-  module.exports = ms;
-}
-})(this);
