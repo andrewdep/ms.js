@@ -11,7 +11,9 @@ var mo = w * 4;
 var y = d * 365.25;
 
 function round(num, dec) {
-  return dec ? Math.round(num*Math.pow(10,dec))/Math.pow(10,dec) : Math.round(num);
+  return dec
+    ? Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec)
+    : Math.round(num);
 }
 
 /**
@@ -28,7 +30,7 @@ function round(num, dec) {
  * @api public
  */
 
-module.exports = function(val, options) {
+module.exports = function (val, options) {
   if (options && options.long) {
     return fmtLong(val);
   } else if (options && options.short) {
@@ -60,7 +62,7 @@ function parse(str) {
   if (str.length > 100) {
     return;
   }
-  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|months?/mos?/years?|yrs?|y)?$/i.exec(
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|months?|mos?|years?|yrs?|y)?$/i.exec(
     str
   );
   if (!match) {
@@ -80,10 +82,6 @@ function parse(str) {
     case 'mos':
     case 'mo':
       return n * mo;
-    case 'weeks':
-    case 'week':
-    case 'w':
-      return n * w;
     case 'weeks':
     case 'week':
     case 'w':
@@ -129,14 +127,29 @@ function parse(str) {
  * @api private
  */
 
-function shortval(ms) {
-  if (ms >= y) { return round(ms / y, 4) + 'y'; }
-  if (ms >= mo) { return round(ms / mo, 4) + 'mo'; }
-  if (ms >= w) { return round(ms / w, 4) + 'w'; }
-  if (ms >= d) { return round(ms / d, 4) + 'd'; }
-  if (ms >= h) { return round(ms / h, 4) + 'h'; }
-  if (ms >= m) { return round(ms / m, 4) + 'm'; }
-  if (ms >= s) { return round(ms / s, 4) + 's'; }
+function fmtShort(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= y) {
+    return round(ms / y, 4) + 'y';
+  }
+  if (msAbs >= mo) {
+    return round(ms / mo, 4) + 'mo';
+  }
+  if (msAbs >= w) {
+    return round(ms / w, 4) + 'w';
+  }
+  if (msAbs >= d) {
+    return round(ms / d, 4) + 'd';
+  }
+  if (msAbs >= h) {
+    return round(ms / h, 4) + 'h';
+  }
+  if (msAbs >= m) {
+    return round(ms / m, 4) + 'm';
+  }
+  if (msAbs >= s) {
+    return round(ms / s, 4) + 's';
+  }
   return ms + 'ms';
 }
 
@@ -150,6 +163,15 @@ function shortval(ms) {
 
 function fmtLong(ms) {
   var msAbs = Math.abs(ms);
+  if (msAbs >= y) {
+    return plural(ms, msAbs, y, 'year');
+  }
+  if (msAbs >= mo) {
+    return plural(ms, msAbs, mo, 'month');
+  }
+  if (msAbs >= w) {
+    return plural(ms, msAbs, w, 'week');
+  }
   if (msAbs >= d) {
     return plural(ms, msAbs, d, 'day');
   }
@@ -170,6 +192,6 @@ function fmtLong(ms) {
  */
 
 function plural(ms, msAbs, n, name) {
-  var isPlural = msAbs >= n * 1.5;
-  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
+  var isPlural = msAbs > n;
+  return round(ms / n, 4) + ' ' + name + (isPlural ? 's' : '');
 }
